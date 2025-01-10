@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chamados</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        .login-container, .info-container, .barra-container {
+            margin: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .barra {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+        .barra label {
+            margin-right: 10px;
+        }
+        .barra input, .barra select {
+            padding: 5px;
+            font-size: 14px;
+        }
+        .btn {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .temp-display {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Login -->
+    <div class="login-container" id="loginContainer">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <label for="usuario">Usuário:</label>
+            <input type="text" id="usuario" required><br><br>
+            <label for="senha">Senha:</label>
+            <input type="password" id="senha" required><br><br>
+            <button type="submit" class="btn">Entrar</button>
+        </form>
+        <p id="loginError" style="color: red;"></p>
+    </div>
+
+    <!-- Barra de Informações -->
+    <div class="info-container" id="infoContainer" style="display:none;">
+        <h2>Informações do Chamado</h2>
+        <div class="barra-container" id="barraContainer"></div>
+        <button class="btn" id="adicionarBarra">Adicionar Barra de Temporizador</button>
+        <br><br>
+        <button class="btn" id="visualizarBanco">Visualizar Banco de Dados</button>
+    </div>
+
+    <script>
+        const usuarios = [
+            { usuario: "Jefão", senha: "GG" },
+            { usuario: "Castelo", senha: "OLA" },
+            { usuario: "Gabriel", senha: "GAB" },
+            { usuario: "kaline", senha: "1234" },
+            { usuario: "julia", senha: "JU" },
+            { usuario: "EU", senha: "7777" },
+            { usuario: "Chefe", senha: "BigBoss" },
+            { usuario: "Marcelo", senha: "5454" }
+        ];
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const usuario = document.getElementById('usuario').value;
+            const senha = document.getElementById('senha').value;
+
+            let usuarioValido = false;
+            for (const user of usuarios) {
+                if (user.usuario === usuario && user.senha === senha) {
+                    usuarioValido = true;
+                    break;
+                }
+            }
+
+            if (usuarioValido) {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('infoContainer').style.display = 'block';
+            } else {
+                document.getElementById('loginError').textContent = 'Usuário ou senha incorretos!';
+            }
+        });
+
+        // Lógica para adicionar barra de temporizador
+        document.getElementById('adicionarBarra').addEventListener('click', function() {
+            const barra = document.createElement('div');
+            barra.classList.add('barra');
+            barra.innerHTML = `
+                <label>TS:</label><input type="number" id="TS" placeholder="Tempo inicial" min="0">
+                <label>PR:</label><select><option value="Problema A">Problema A</option><option value="Problema B">Problema B</option><option value="Problema C">Problema C</option></select>
+                <label>OP:</label><select><option value="Castelo">Castelo</option><option value="Marcelo">Marcelo</option><option value="Julia">Julia</option></select>
+                <label>EX:</label><select><option value="Airton">Airton</option><option value="Damião">Damião</option><option value="Daniel">Daniel</option></select>
+                <div class="temp-display" id="tempDisplay">T: 00:00:00</div>
+                <button class="btn" id="iniciarTemporizador">Iniciar</button>
+                <button class="btn" id="pausarTemporizador">Pausar</button>
+            `;
+            document.getElementById('barraContainer').appendChild(barra);
+
+            // Lógica do Temporizador
+            let tempoRestante = 0;
+            let temporizadorAtivo = false;
+
+            barra.querySelector('#iniciarTemporizador').addEventListener('click', function() {
+                tempoRestante = parseInt(barra.querySelector('#TS').value) || 0;
+                temporizadorAtivo = true;
+                atualizarTemporizador();
+            });
+
+            barra.querySelector('#pausarTemporizador').addEventListener('click', function() {
+                temporizadorAtivo = !temporizadorAtivo;
+                if (!temporizadorAtivo) {
+                    clearInterval(intervalo);
+                }
+            });
+
+            function atualizarTemporizador() {
+                if (temporizadorAtivo && tempoRestante > 0) {
+                    tempoRestante--;
+                    const horas = Math.floor(tempoRestante / 3600);
+                    const minutos = Math.floor((tempoRestante % 3600) / 60);
+                    const segundos = tempoRestante % 60;
+                    barra.querySelector('.temp-display').textContent = `T: ${formatarTempo(horas)}:${formatarTempo(minutos)}:${formatarTempo(segundos)}`;
+                } else {
+                    barra.querySelector('.temp-display').textContent = 'Tempo esgotado!';
+                    temporizadorAtivo = false;
+                }
+                if (temporizadorAtivo) {
+                    intervalo = setTimeout(atualizarTemporizador, 1000);
+                }
+            }
+
+            function formatarTempo(tempo) {
+                return tempo < 10 ? '0' + tempo : tempo;
+            }
+        });
+    </script>
+</body>
+</html>
